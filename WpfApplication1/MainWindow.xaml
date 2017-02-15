@@ -7,17 +7,19 @@
         mc:Ignorable="d">
 
     <Window.Resources>
-        <local:CanvasDragDropAdvisor x:Key="advisor" />
+        <local:CanvasDropAdvisor x:Key="Advisor" />
+        <local:ItemDragAdvisor x:Key="ItemAdvisor" />
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <TextBlock Height="30" Grid.Column="0" Text="PRUEBA" Background="YellowGreen"  local:DragDropManager.UseDragSourceAdvisor="{StaticResource advisor}"/>
-        <Canvas Grid.Column="1" Background="White"
-                local:DragDropManager.UseDragSourceAdvisor="{StaticResource advisor}" 
-                local:DragDropManager.UseDropTargetAdvisor="{StaticResource advisor}">
+        <StackPanel Grid.Column="0">
+            <TextBlock Height="30" Text="PRUEBA1" Background="YellowGreen" local:DragDropManager.UseDragSourceAdvisor="{StaticResource ItemAdvisor}" />
+            <TextBlock Height="30" Text="PRUEBA2" Background="YellowGreen" />
+        </StackPanel>
+        <Canvas Grid.Column="1" Background="White" local:DragDropManager.UseDropTargetAdvisor="{StaticResource Advisor}" local:DragDropManager.UseDragSourceAdvisor="{StaticResource Advisor}">
         </Canvas>
     </Grid>
 </Window>

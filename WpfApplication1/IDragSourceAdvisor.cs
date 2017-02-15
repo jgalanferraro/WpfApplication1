@@ -5,10 +5,9 @@ namespace WpfApplication1
     public interface IDragSourceAdvisor
     {
         UIElement SourceUI { get; set; }
+        bool IsDraggable { get; }
         DragDropEffects SupportedEffects { get; }
-        DataObject GetDataObject(UIElement draggedElt);
+        DataObject GetDataObject();
         void FinishDrag(UIElement draggedElt, DragDropEffects finalEffects);
-        bool IsDraggable(UIElement dragElt);
-        UIElement GetTopContainer();
     }
 }

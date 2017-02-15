@@ -16,7 +16,8 @@ namespace WpfApplication1
                                                                                                                     typeof(IDropTargetAdvisor),
                                                                                                                     typeof(DragDropManager),
                                                                                                                     new FrameworkPropertyMetadata(new PropertyChangedCallback(OnDropTargetAdvisorChanged)));
-        public static UIElement DragControl;
+
+        private static UIElement _droppingItem;
 
         public static void SetUseDragSourceAdvisor(DependencyObject d, IDragSourceAdvisor dragSource)
         {
@@ -47,7 +48,7 @@ namespace WpfApplication1
             {
                 sourceElt.PreviewMouseLeftButtonDown += DragSource_PreviewMouseLeftButtonDown;
                 sourceElt.PreviewMouseMove += DragSource_PreviewMouseMove;
-                sourceElt.PreviewMouseUp += DragSource_PreviewMouseUp;
+                sourceElt.PreviewMouseLeftButtonUp += DragSource_PreviewMouseLeftButtonUp;
                 //Set the Drag source UI
                 IDragSourceAdvisor advisor = args.NewValue as IDragSourceAdvisor;
                 advisor.SourceUI = sourceElt;
@@ -56,39 +57,35 @@ namespace WpfApplication1
             {
                 sourceElt.PreviewMouseLeftButtonDown -= DragSource_PreviewMouseLeftButtonDown;
                 sourceElt.PreviewMouseMove -= DragSource_PreviewMouseMove;
-                sourceElt.PreviewMouseUp -= DragSource_PreviewMouseUp;
+                sourceElt.PreviewMouseLeftButtonUp -= DragSource_PreviewMouseLeftButtonUp;
             }
         }
 
-        private static void DragSource_PreviewMouseUp(object sender, MouseButtonEventArgs e)
+        private static void DragSource_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            DragControl = null;
-            var dragSource = sender as IDragSourceAdvisor;
-
-            if (dragSource != null)
-            {
-            }
+            IDragSourceAdvisor dragSourceAdvisor = GetUseDragSourceAdvisor(sender as DependencyObject);
         }
 
         private static void DragSource_PreviewMouseMove(object sender, MouseEventArgs e)
         {
-            var dragSource = sender as IDragSourceAdvisor;
+            IDragSourceAdvisor dragSourceAdvisor = GetUseDragSourceAdvisor(sender as DependencyObject);
 
-            if (DragControl != null)
+            if (dragSourceAdvisor != null && dragSourceAdvisor.IsDraggable)
             {
+                IDataObject data = dragSourceAdvisor.GetDataObject();
+                DragDrop.DoDragDrop(sender as DependencyObject, data, DragDropEffects.Move);
             }
         }
 
         private static void DragSource_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            IDragSourceAdvisor dragSource = GetUseDragSourceAdvisor(sender as DependencyObject);
+            IDragSourceAdvisor dragSourceAdvisor = GetUseDragSourceAdvisor(sender as DependencyObject);
 
-            if (dragSource is IDragSourceAdvisor)
+            if (dragSourceAdvisor != null)
             {
-                UIElement dragControl = sender as UIElement;
-                if (dragSource.IsDraggable(dragControl))
+                if (dragSourceAdvisor.IsDraggable)
                 {
-                    DragControl = dragControl;
+                    _droppingItem = dragSourceAdvisor.SourceUI;
                 }
             }
         }
@@ -122,22 +119,22 @@ namespace WpfApplication1
 
         private static void DropTarget_PreviewDrop(object sender, DragEventArgs e)
         {
-            throw new NotImplementedException();
+            IDropTargetAdvisor dragSource = GetUseDropTargetAdvisor(sender as DependencyObject);
         }
 
         private static void DropTarget_PreviewDragLeave(object sender, DragEventArgs e)
         {
-            throw new NotImplementedException();
+            IDropTargetAdvisor dragSource = GetUseDropTargetAdvisor(sender as DependencyObject);
         }
 
         private static void DropTarget_PreviewDragOver(object sender, DragEventArgs e)
         {
-            throw new NotImplementedException();
+            IDropTargetAdvisor dragSource = GetUseDropTargetAdvisor(sender as DependencyObject);
         }
 
         private static void DropTarget_PreviewDragEnter(object sender, DragEventArgs e)
         {
-            throw new NotImplementedException();
+            IDropTargetAdvisor dragSource = GetUseDropTargetAdvisor(sender as DependencyObject);
         }
 
         #endregion

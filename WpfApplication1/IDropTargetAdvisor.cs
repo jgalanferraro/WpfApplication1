@@ -9,6 +9,5 @@ namespace WpfApplication1
         bool IsValidDataObject(IDataObject obj);
         void OnDropCompleted(IDataObject obj, Point dropPoint);
         UIElement GetVisualFeedback(IDataObject obj);
-        UIElement GetTopContainer();
     }
 }

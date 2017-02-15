@@ -14,15 +14,21 @@ using Windows.Foundation;
 
 namespace WpfApplication1
 {
-    public class CanvasDragDropAdvisor : IDragSourceAdvisor, IDropTargetAdvisor
+    public class CanvasDropAdvisor : IDropTargetAdvisor, IDragSourceAdvisor
     {
-        private UIElement _sourceAndTargetElt;
+        private UIElement _sourceTargetElt;
 
         #region IDragSourceAdvisor
+
         public UIElement SourceUI
         {
-            get { return _sourceAndTargetElt; }
-            set { _sourceAndTargetElt = value; }
+            get { return _sourceTargetElt; }
+            set { _sourceTargetElt = value; }
+        }
+
+        public bool IsDraggable
+        {
+            get{ return !(_sourceTargetElt is Canvas); }
         }
 
         public DragDropEffects SupportedEffects
@@ -34,36 +40,25 @@ namespace WpfApplication1
         {
             if ((finalEffects & DragDropEffects.Move) == DragDropEffects.Move)
             {
-                (_sourceAndTargetElt as Canvas).Children.Remove(draggedElt);
+                (_sourceTargetElt as Canvas).Children.Remove(draggedElt);
             }
         }
 
-        public DataObject GetDataObject(UIElement draggedElt)
+        public DataObject GetDataObject()
         {
-            string serializedElt = XamlWriter.Save(draggedElt);
+            string serializedElt = XamlWriter.Save(_sourceTargetElt);
             DataObject obj = new DataObject("CanvasExample", serializedElt);
             return obj;
-        }
-
-        public UIElement GetTopContainer()
-        {
-            return _sourceAndTargetElt;
-        }
-
-        public bool IsDraggable(UIElement dragElt)
-        {
-            return (!(dragElt is Canvas));
         }
 
         #endregion
 
         #region IDropTargetAdvisor
 
-
         public UIElement TargetUI
         {
-            get { return _sourceAndTargetElt; }
-            set { _sourceAndTargetElt = value; }
+            get { return _sourceTargetElt; }
+            set { _sourceTargetElt = value; }
         }
 
         public bool ApplyMouseOffset
@@ -91,7 +86,7 @@ namespace WpfApplication1
 
         public void OnDropCompleted(IDataObject obj, Point dropPoint)
         {
-            Canvas canvas = _sourceAndTargetElt as Canvas;
+            Canvas canvas = _sourceTargetElt as Canvas;
             UIElement elt = ExtractElement(obj);
             canvas.Children.Add(elt);
             Canvas.SetLeft(elt, dropPoint.X);
