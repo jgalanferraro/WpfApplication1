@@ -19,7 +19,7 @@
             <TextBlock Height="30" Text="PRUEBA1" Background="YellowGreen" local:DragDropManager.UseDragSourceAdvisor="{StaticResource ItemAdvisor}" />
             <TextBlock Height="30" Text="PRUEBA2" Background="YellowGreen" />
         </StackPanel>
-        <Canvas Grid.Column="1" Background="White" local:DragDropManager.UseDropTargetAdvisor="{StaticResource Advisor}" local:DragDropManager.UseDragSourceAdvisor="{StaticResource Advisor}">
+        <Canvas Grid.Column="1" Background="White" local:DragDropManager.UseDropTargetAdvisor="{StaticResource Advisor}">
         </Canvas>
     </Grid>
 </Window>
