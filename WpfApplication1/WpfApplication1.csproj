@@ -64,6 +64,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="CanvasDropAdvisor.cs" />
+    <Compile Include="DragAdorner.cs" />
     <Compile Include="DragDropManager.cs" />
     <Compile Include="IDragSourceAdvisor.cs" />
     <Compile Include="IDropTargetAdvisor.cs" />

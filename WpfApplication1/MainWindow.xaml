@@ -16,8 +16,8 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0">
-            <TextBlock Height="30" Text="PRUEBA1" Background="YellowGreen" local:DragDropManager.UseDragSourceAdvisor="{StaticResource ItemAdvisor}" />
-            <TextBlock Height="30" Text="PRUEBA2" Background="YellowGreen" />
+            <TextBlock Height="30" Width="80" Text="PRUEBA1" Background="YellowGreen" local:DragDropManager.UseDragSourceAdvisor="{StaticResource ItemAdvisor}" />
+            <TextBlock Height="30" Width="80" Text="PRUEBA2" Background="YellowGreen" />
         </StackPanel>
         <Canvas Grid.Column="1" Background="White" local:DragDropManager.UseDropTargetAdvisor="{StaticResource Advisor}">
         </Canvas>

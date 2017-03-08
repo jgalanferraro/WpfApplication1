@@ -11,38 +11,38 @@ namespace WpfApplication1
 {
     public class ItemDragAdvisor : IDragSourceAdvisor
     {
-        private UIElement _sourceTargetElt;
+        private UIElement _sourceElt;
 
         #region IDragSourceAdvisor
 
         public UIElement SourceUI
         {
-            get { return _sourceTargetElt; }
-            set { _sourceTargetElt = value; }
+            get { return _sourceElt; }
+            set { _sourceElt = value; }
         }
 
         public bool IsDraggable
         {
-            get { return !(_sourceTargetElt is Canvas); }
+            get { return true; }
         }
 
         public DragDropEffects SupportedEffects
         {
-            get { return DragDropEffects.Copy|DragDropEffects.Move; }
+            get { return DragDropEffects.Move; }
         }
 
         public void FinishDrag(UIElement draggedElt, DragDropEffects finalEffects)
         {
             if ((finalEffects & DragDropEffects.Move) == DragDropEffects.Move)
             {
-                (_sourceTargetElt as Canvas).Children.Remove(draggedElt);
+                (_sourceElt as Canvas).Children.Remove(draggedElt);
             }
         }
 
         public DataObject GetDataObject()
         {
-            string serializedElt = XamlWriter.Save(_sourceTargetElt);
-            DataObject obj = new DataObject("CanvasExample", serializedElt);
+            string serializedElt = XamlWriter.Save(_sourceElt);
+            DataObject obj = new DataObject("DraggedItem", serializedElt);
             return obj;
         }
 

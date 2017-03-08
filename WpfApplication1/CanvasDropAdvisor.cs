@@ -14,51 +14,16 @@ using Windows.Foundation;
 
 namespace WpfApplication1
 {
-    public class CanvasDropAdvisor : IDropTargetAdvisor, IDragSourceAdvisor
+    public class CanvasDropAdvisor : IDropTargetAdvisor
     {
-        private UIElement _sourceTargetElt;
-
-        #region IDragSourceAdvisor
-
-        public UIElement SourceUI
-        {
-            get { return _sourceTargetElt; }
-            set { _sourceTargetElt = value; }
-        }
-
-        public bool IsDraggable
-        {
-            get{ return !(_sourceTargetElt is Canvas); }
-        }
-
-        public DragDropEffects SupportedEffects
-        {
-            get { return DragDropEffects.Move; }
-        }
-
-        public void FinishDrag(UIElement draggedElt, DragDropEffects finalEffects)
-        {
-            if ((finalEffects & DragDropEffects.Move) == DragDropEffects.Move)
-            {
-                (_sourceTargetElt as Canvas).Children.Remove(draggedElt);
-            }
-        }
-
-        public DataObject GetDataObject()
-        {
-            string serializedElt = XamlWriter.Save(_sourceTargetElt);
-            DataObject obj = new DataObject("CanvasExample", serializedElt);
-            return obj;
-        }
-
-        #endregion
+        private UIElement _targetElt;
 
         #region IDropTargetAdvisor
 
         public UIElement TargetUI
         {
-            get { return _sourceTargetElt; }
-            set { _sourceTargetElt = value; }
+            get { return _targetElt; }
+            set { _targetElt = value; }
         }
 
         public bool ApplyMouseOffset
@@ -68,7 +33,7 @@ namespace WpfApplication1
 
         public bool IsValidDataObject(IDataObject obj)
         {
-            return (obj.GetDataPresent("CanvasExample"));
+            return (obj.GetDataPresent("DraggedItem"));
         }
 
         public UIElement GetVisualFeedback(IDataObject obj)
@@ -86,7 +51,7 @@ namespace WpfApplication1
 
         public void OnDropCompleted(IDataObject obj, Point dropPoint)
         {
-            Canvas canvas = _sourceTargetElt as Canvas;
+            Canvas canvas = _targetElt as Canvas;
             UIElement elt = ExtractElement(obj);
             canvas.Children.Add(elt);
             Canvas.SetLeft(elt, dropPoint.X);
@@ -97,7 +62,7 @@ namespace WpfApplication1
 
         private UIElement ExtractElement(IDataObject obj)
         {
-            string xamlString = obj.GetData("CanvasExample") as string;
+            string xamlString = obj.GetData("DraggedItem") as string;
             XmlReader reader = XmlReader.Create(new StringReader(xamlString));
             UIElement elt = XamlReader.Load(reader) as UIElement;
             return elt;

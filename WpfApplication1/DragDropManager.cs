@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace WpfApplication1
 {
@@ -17,8 +19,9 @@ namespace WpfApplication1
                                                                                                                     typeof(DragDropManager),
                                                                                                                     new FrameworkPropertyMetadata(new PropertyChangedCallback(OnDropTargetAdvisorChanged)));
 
-        private static IDragSourceAdvisor _dragAdvisor;
-        private static IDropTargetAdvisor _dropAdvisor;
+        static IDropTargetAdvisor _dropAdvisor;
+        static DragAdorner _adorner = null;
+        static AdornerLayer _layer;
 
         public static void SetUseDragSourceAdvisor(DependencyObject d, IDragSourceAdvisor dragSource)
         {
@@ -49,16 +52,24 @@ namespace WpfApplication1
                 sourceElt.PreviewMouseLeftButtonDown += DragSource_PreviewMouseLeftButtonDown;
                 sourceElt.PreviewMouseMove += DragSource_PreviewMouseMove;
                 sourceElt.PreviewMouseLeftButtonUp += DragSource_PreviewMouseLeftButtonUp;
+                sourceElt.GiveFeedback += DragSource_PreviewGiveFeedback;
                 //Set the Drag source UI
-                //_dragAdvisor = args.NewValue as IDragSourceAdvisor;
-                //_dragAdvisor.SourceUI = sourceElt;
+                IDragSourceAdvisor _dragAdvisor = args.NewValue as IDragSourceAdvisor;
+                _dragAdvisor.SourceUI = sourceElt;
             }
             else if (args.NewValue == null && args.OldValue != null)
             {
                 sourceElt.PreviewMouseLeftButtonDown -= DragSource_PreviewMouseLeftButtonDown;
                 sourceElt.PreviewMouseMove -= DragSource_PreviewMouseMove;
                 sourceElt.PreviewMouseLeftButtonUp -= DragSource_PreviewMouseLeftButtonUp;
+                sourceElt.GiveFeedback -= DragSource_PreviewGiveFeedback;
             }
+        }
+
+        private static void DragSource_PreviewGiveFeedback(object sender, GiveFeedbackEventArgs e)
+        {
+            e.UseDefaultCursors = false;
+            e.Handled = true;
         }
 
         private static void DragSource_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -73,11 +84,17 @@ namespace WpfApplication1
             {
                 var dragAdvisor = GetUseDragSourceAdvisor(sender as DependencyObject);
 
-                if (dragAdvisor.Equals(_dragAdvisor))
+                IDataObject data = dragAdvisor.GetDataObject();
+
+                if (_dropAdvisor.IsValidDataObject(data))
                 {
-                    IDataObject data = _dragAdvisor.GetDataObject();
-                    DragDrop.DoDragDrop(_dropAdvisor.TargetUI, data, DragDropEffects.Move);
+                    UIElement dropElement = _dropAdvisor.GetVisualFeedback(data);
+                    _adorner = new DragAdorner(_dropAdvisor.TargetUI, dropElement);
+                    _layer = AdornerLayer.GetAdornerLayer(_dropAdvisor.TargetUI as Visual);
+                    _layer.Add(_adorner);
                 }
+
+                DragDrop.DoDragDrop(dragAdvisor.SourceUI, data, dragAdvisor.SupportedEffects);
             }
         }
 
@@ -85,12 +102,6 @@ namespace WpfApplication1
         private static void DragSource_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var dragAdvisor = GetUseDragSourceAdvisor(sender as DependencyObject);
-
-            if (dragAdvisor != null && dragAdvisor.IsDraggable)
-            {
-                _dragAdvisor = dragAdvisor;
-                _dragAdvisor.SourceUI = sender as UIElement;
-            }
         }
 
         #endregion
@@ -102,7 +113,7 @@ namespace WpfApplication1
             if (args.NewValue != null && args.OldValue == null)
             {
                 targetElt.PreviewDragEnter += DropTarget_PreviewDragEnter;
-                targetElt.PreviewDragOver += DropTarget_PreviewDragOver;
+                targetElt.DragOver += DropTarget_PreviewDragOver;
                 targetElt.PreviewDragLeave += DropTarget_PreviewDragLeave;
                 targetElt.PreviewDrop += DropTarget_PreviewDrop;
                 targetElt.AllowDrop = true;
@@ -113,7 +124,7 @@ namespace WpfApplication1
             else if (args.NewValue == null && args.OldValue != null)
             {
                 targetElt.PreviewDragEnter -= DropTarget_PreviewDragEnter;
-                targetElt.PreviewDragOver -= DropTarget_PreviewDragOver;
+                targetElt.DragOver -= DropTarget_PreviewDragOver;
                 targetElt.PreviewDragLeave -= DropTarget_PreviewDragLeave;
                 targetElt.PreviewDrop -= DropTarget_PreviewDrop;
                 targetElt.AllowDrop = false;
@@ -122,32 +133,47 @@ namespace WpfApplication1
 
         private static void DropTarget_PreviewDrop(object sender, DragEventArgs e)
         {
-            IDropTargetAdvisor dragSource = GetUseDropTargetAdvisor(sender as DependencyObject);
+            var dropAdvisor = GetUseDropTargetAdvisor(sender as DependencyObject);
+
+            var data = e.Data;
+            if (dropAdvisor.IsValidDataObject(data))
+            {
+                Point position = e.GetPosition(dropAdvisor.TargetUI);
+                dropAdvisor.OnDropCompleted(data, position);
+            }
         }
 
         private static void DropTarget_PreviewDragLeave(object sender, DragEventArgs e)
         {
-            IDropTargetAdvisor dragSource = GetUseDropTargetAdvisor(sender as DependencyObject);
+           
         }
 
         private static void DropTarget_PreviewDragOver(object sender, DragEventArgs e)
         {
-            IDropTargetAdvisor dragSource = GetUseDropTargetAdvisor(sender as DependencyObject);
+            var dropAdvisor = GetUseDropTargetAdvisor(sender as DependencyObject);
+
+            var data = e.Data;
+            if (dropAdvisor.IsValidDataObject(data))
+            {
+                _adorner.LeftOffset = e.GetPosition(dropAdvisor.TargetUI).X /* - _startPoint.X */ ;
+                _adorner.TopOffset = e.GetPosition(dropAdvisor.TargetUI).Y /* - _startPoint.Y */ ;
+            }
         }
 
         private static void DropTarget_PreviewDragEnter(object sender, DragEventArgs e)
         {
-            var dropAdvisor = GetUseDropTargetAdvisor(sender as DependencyObject);
+            //var dropAdvisor = GetUseDropTargetAdvisor(sender as DependencyObject);
 
-            if (dropAdvisor.Equals(_dropAdvisor))
-            {
-                var data = e.Data;
-                if (dropAdvisor.IsValidDataObject(data))
-                {
-                    dropAdvisor.GetVisualFeedback(data);
+            //var data = e.Data;
+            //if (dropAdvisor.IsValidDataObject(data))
+            //{
+            //    UIElement dropElement = dropAdvisor.GetVisualFeedback(data);        
+            //    DragAdorner _adorner = new DragAdorner(dropAdvisor.TargetUI, dropElement);
+            //    AdornerLayer _layer = AdornerLayer.GetAdornerLayer(dropAdvisor.TargetUI as Visual);
+            //    _layer.Add(_adorner);
 
-                }
-            }
+                
+            //}
         }
 
         #endregion
